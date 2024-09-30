@@ -1,5 +1,5 @@
 # **BIRDIE: Natural Language-Driven Table Discovery Using Differentiable Search Index**
-BIRDIE: An effective NL-driven table discovery framework using differentiable search index. BIRDIE first assigns each table a prefix-aware identifier and leverages a large language model-based query generator to create synthetic queries for each table.  It then encodes the mapping between synthetic queries/tables and their corresponding table identifiers into the parameters of an encoder-decoder language model, enabling deep query-table interactions. During search, the trained model directly generates table identifiers for a given query. To accommodate the continual indexing of dynamic tables, we introduce an index update strategy via parameter isolation, which mitigates the issue of catastrophic forgetting.
+BIRDIE: An effective NL-driven table discovery framework using a differentiable search index. BIRDIE first assigns each table a prefix-aware identifier and leverages a large language model-based query generator to create synthetic queries for each table.  It then encodes the mapping between synthetic queries/tables and their corresponding table identifiers into the parameters of an encoder-decoder language model, enabling deep query-table interactions. During search, the trained model directly generates table identifiers for a given query. To accommodate the continual indexing of dynamic tables, we introduce an index update strategy via parameter isolation, which mitigates the issue of catastrophic forgetting.
 
 ## Requirements
 
@@ -11,7 +11,7 @@ BIRDIE: An effective NL-driven table discovery framework using differentiable se
 Please refer to the source code to install all required packages in Python.
 
 ## Datasets
-We use two benchmark datasets NQ-Tables, and FetaQA, which are used in the  [previous study](https://github.com/thedatastation/solo). 
+We use two benchmark datasets NQ-Tables and FetaQA, used in the [previous study](https://github.com/thedatastation/solo). 
 
 ## Run Experimental Case
 **Scenario I : Indexing from scratch**
@@ -52,6 +52,6 @@ CUDA_VISIBLE_DEVICES=0 python3 -m torch.distributed.launch --nproc_per_node=1 ru
 
 
 ## Acknowledgments
-The original datasets are form [NQ-Tables](http://websail-fe.cs.northwestern.edu/TabEL/),  and [FetaQA](http://webdatacommons.org/webtables/2015/downloadInstructions.html).
+The original datasets are from [NQ-Tables](https://github.com/google-research/tapas/blob/master/DENSE_TABLE_RETRIEVER.md), and [FetaQA](https://github.com/Yale-LILY/FeTaQA).
 
-The amazing previous works [Solo](https://github.com/thedatastation/solo), [DSI](https://arxiv.org/abs/2202.06991)... inspired this work.
+We thank the previous studies working towards this direction [Solo](https://github.com/thedatastation/solo), [DSI-QG](https://arxiv.org/abs/2206.10128)...
