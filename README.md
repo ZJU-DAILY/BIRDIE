@@ -1,0 +1,57 @@
+# **BIRDIE: Natural Language-Driven Table Discovery Using Differentiable Search Index**
+BIRDIE: An effective NL-driven table discovery framework using differentiable search index. BIRDIE first assigns each table a prefix-aware identifier and leverages a large language model-based query generator to create synthetic queries for each table.  It then encodes the mapping between synthetic queries/tables and their corresponding table identifiers into the parameters of an encoder-decoder language model, enabling deep query-table interactions. During search, the trained model directly generates table identifiers for a given query. To accommodate the continual indexing of dynamic tables, we introduce an index update strategy via parameter isolation, which mitigates the issue of catastrophic forgetting.
+
+## Requirements
+
+* Python 3.7
+* PyTorch 1.10.1
+* CUDA 11.5
+* NVIDIA 4090 GPUs
+
+Please refer to the source code to install all required packages in Python.
+
+## Datasets
+We use two benchmark datasets NQ-Tables, and FetaQA, which are used in the  [previous study](https://github.com/thedatastation/solo). 
+
+## Run Experimental Case
+**Scenario I : Indexing from scratch**
+
++ Train the model to index the tables in the repository
+
+```
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 python3 -m torch.distributed.launch --nproc_per_node=6 run.py --task "Index" --train_file "./dataset/fetaqa/train.json" --valid_file "./dataset/fetaqa/test.json" --gradient_accumulation_steps 6 --max_steps 8000 --run_name "feta" --output_dir "./model/feta"
+```
+
++ Search using the trained model
+
+```
+CUDA_VISIBLE_DEVICES=0 python3 -m torch.distributed.launch --nproc_per_node=1 run.py --task "Search" --train_file "./dataset/fetaqa/train.json" --valid_file "./dataset/fetaqa/test.json" --base_model_path "./model/feta/checkpoint-8000" --output_dir "./model/feta"
+```
+
+**Scenario II : Index Update**
+
++ Train the model M<sup>0  </sup> on the repository D<sup>0</sup>
+
+```
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 python3 -m torch.distributed.launch --nproc_per_node=6 run_cont.py --task "Index" --train_file "./dataset/fetaqa_inc/train_0.json" --valid_file "./dataset/fetaqa_inc/test_0.json" --gradient_accumulation_steps 6 --max_steps 7000 --run_name "feta_inc0" --output_dir "./model/feta_inc0" 
+```
+
++ Train a memory unit L<sup>1</sup> to index D<sup>1</sup> based on the model M<sup>0</sup> using LoRA
+
+```
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 python3 -m torch.distributed.launch --nproc_per_node=6 run_cont.py --task "Index" --base_model_path "./model/feta_inc0/checkpoint-7000" --train_file "./dataset/fetaqa_inc/train_1.json" --valid_file "./dataset/fetaqa_inc/test_1.json" --peft True --gradient_accumulation_steps 6 --max_steps 4000 --run_name "feta_LoRA_d1" --output_dir "./model/feta_LoRA_d1"
+```
+
++ Search tables using the model M<sup>0 </sup> and the plug-and-play LoRA memory L<sup>1</sup>
+
+```
+CUDA_VISIBLE_DEVICES=0 python3 -m torch.distributed.launch --nproc_per_node=1 run_cont.py --task "Search" --train_file  --valid_file "./dataset/fetaqa_inc/test_0+1.json" --LoRA_1 "./model/feta_LoRA_d1/checkpoint-4000" --partition_0 "./dataset/fetaqa_inc/train_0.json" --partition_1 "./dataset/fetaqa_inc/train_1.json" --output_dir "./model/feta_LoRA_d1"
+```
+
+
+
+
+## Acknowledgments
+The original datasets are form [NQ-Tables](http://websail-fe.cs.northwestern.edu/TabEL/),  and [FetaQA](http://webdatacommons.org/webtables/2015/downloadInstructions.html).
+
+The amazing previous works [Solo](https://github.com/thedatastation/solo), [DSI](https://arxiv.org/abs/2202.06991)... inspired this work.
