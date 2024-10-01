@@ -291,29 +291,22 @@ class MapTrainer(Trainer):
                 metric_key_prefix: str = "test"
                 )-> PredictionOutput:
 
-        # 设置模型为评估模式
         self.model.eval()
 
-        # 定义用于存储的变量
         all_confidences = []
         all_predictions = []
         all_labels = []
 
-        for inputs in self.get_test_dataloader(test_dataset): #no shuffle保证test样本顺序正确
-            # 获取单个批次的预测结果
+        for inputs in self.get_test_dataloader(test_dataset): #no shuffle
             _, batch_beams, labels = self.prediction_step(
                 self.model, inputs, prediction_loss_only=False, ignore_keys=ignore_keys
             )
             all_predictions.append(batch_beams)
             all_labels.append(labels)
 
-        # 将所有批次的结果合并
-
         all_predictions = torch.cat(all_predictions, dim=0)
         all_labels = torch.cat(all_labels, dim=0)
         metrics = {}
-
-        # 返回结果
         return PredictionOutput(predictions=all_predictions, label_ids=all_labels, metrics=metrics)
 
     def _pad_tensors_to_max_len(self, tensor, max_length):
