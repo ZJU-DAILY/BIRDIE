@@ -1,4 +1,3 @@
-import argparse
 import warnings
 from collections import Counter
 import itertools
@@ -7,41 +6,34 @@ from data import IndexingTrainDataset, IndexingCollator
 from peft import get_peft_model, LoraConfig, TaskType, PeftModel
 from inspect import signature
 from transformers import (
-    MT5Tokenizer,
-    MT5TokenizerFast,
-    MT5ForConditionalGeneration,
     TrainingArguments,
     TrainerCallback,
     MT5Tokenizer,
     MT5TokenizerFast,
     MT5ForConditionalGeneration,
     HfArgumentParser,
-    IntervalStrategy,
     set_seed,
 )
 from trainer import DSITrainer, MapTrainer
 import numpy as np
 import torch
 import wandb
-import os
-from torch.utils.data import DataLoader
 from dataclasses import dataclass, field
 from typing import Optional
 import json
-from tqdm import tqdm
 # wandb.init(mode='offline')
 set_seed(313)
 
 @dataclass
 class RunArguments:
     model_name: str = field(default="google/mt5-base")
-    base_model_path: str = field(default="./model/mt5-base")
+    base_model_path: str = field(default="../model/mt5-base")
     max_length: Optional[int] = field(default=64)
     id_max_length: Optional[int] = field(default=20)
     train_file: str = field(default="./dataset/fetaqa_inc/train_0.json")
     valid_file: str = field(default="./dataset/fetaqa_inc/test_0.json")
     all_file: str = field(default="./dataset/fetaqa_inc/train_0.json", metadata={"help": "the valid tabids"})
-    task: str = field(default="Index",  metadata={"help": "Index, Search"})
+    task: str = field(default="Search",  metadata={"help": "Index, Search"})
     top_k: Optional[int] = field(default=10)
     num_return_sequences: Optional[int] = field(default=10)
     q_max_length: Optional[int] = field(default=32)
@@ -51,12 +43,12 @@ class RunArguments:
 
 @dataclass
 class CustomTrainingArguments(TrainingArguments):
-    num: int = field(default=0)
-    LoRA_1: str = field(default="None")
+    num: int = field(default=2) # num of models, including base and lora
+    LoRA_1: str = field(default="./model/feta_LoRA_d1/checkpoint-100")
     LoRA_2: str = field(default="None")
     LoRA_3: str = field(default="None")
-    partition_0: str = field(default="None")
-    partition_1: str = field(default="None")
+    partition_0: str = field(default="./dataset/fetaqa_inc/train_0.json")
+    partition_1: str = field(default="./dataset/fetaqa_inc/train_1.json")
     partition_2: str = field(default="None")
     partition_3: str = field(default="None")
     num_train_epochs: int = field(default=3)
@@ -113,7 +105,6 @@ def inference_on_test_set(model, test_args, test_dataset, tokenizer, restrict_de
         id_max_length=id_max_length
     )
 
-    # 执行推理
     results = trainer.predict(test_dataset=test_dataset)
 
     predictions = results.predictions
@@ -277,7 +268,7 @@ def main():
                     k = data["text_id"]
                     q = data["text"]
                     if k not in id2q[i].keys():
-                        id2q[i][k] = []  # 第一个value是table
+                        id2q[i][k] = []
                         # id2q[i][k].append(q)
                     else:
                         id2q[i][k].append(q)
@@ -285,6 +276,7 @@ def main():
             if lora_pth is not None:
                 model = PeftModel.from_pretrained(base_model, lora_pth)
             else:
+
                 model = base_model
             predictions, labels = inference_on_test_set(
                 model=model,
@@ -307,7 +299,7 @@ def main():
                 j += 1
         hit_at_5 = 0
         hit_at_1 = 0
-        model = SentenceTransformer("./model/stsb-roberta-base")
+        model = SentenceTransformer("../model/stsb-roberta-base")
         merged_id2q = {}
 
         for d in id2q:
@@ -318,10 +310,6 @@ def main():
             ids = list(itertools.chain(*cadidates_ids[i]))
             gen_qs = [merged_id2q[id] for id in ids]
             gen_qs = list(itertools.chain(*gen_qs))
-            # for model_k_candidates in cadidates_ids[i]:
-            #     gen_qs = [merged_id2q[id] for id in model_k_candidates]
-            #     gen_qs = list(itertools.chain(*gen_qs))
-            #     lens.append(len(gen_qs))
             embed = model.encode(gen_qs, batch_size=2048)
             candidate_embeddings = np.array(embed)
             candidate_embeddings = candidate_embeddings / np.linalg.norm(candidate_embeddings, axis=1, keepdims=True)
@@ -355,9 +343,3 @@ def main():
 if __name__ == "__main__":
 
     main()
-
-
-
-
-
-
