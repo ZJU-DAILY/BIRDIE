@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 import json
 from tqdm import tqdm
-# wandb.init(mode='offline')
+wandb.init(mode='offline')
 
 
 @dataclass
@@ -103,7 +103,6 @@ def make_compute_metrics(tokenizer, valid_ids):
                     filtered_rank_list.append(docid)
             hits = np.where(np.array(filtered_rank_list)[:5] == label_id)[0]
             # hits = np.where(np.array(filtered_rank_list)[:10] == label_id)[0]
-
             if len(hits) != 0:
                 hit_at_5 += 1
                 if hits[0] == 0:
@@ -171,11 +170,6 @@ def main():
                                              cache_dir='cache',
                                              remove_prompt=run_args.remove_prompt,
                                              tokenizer=tokenizer)
-        all_dataset = IndexingTrainDataset(
-            path_to_data=run_args.all_file,
-            max_length=run_args.max_length,
-            cache_dir='cache',
-            tokenizer=tokenizer)
 
         trainer = DSITrainer(
             model=model,
@@ -187,7 +181,7 @@ def main():
                 tokenizer,
                 padding='longest',
             ),
-            compute_metrics = make_compute_metrics(fast_tokenizer, all_dataset.valid_ids),
+            compute_metrics = make_compute_metrics(fast_tokenizer, train_dataset.valid_ids),
             restrict_decode_vocab = restrict_decode_vocab,
             id_max_length=run_args.id_max_length,
         )
@@ -237,11 +231,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()
-
-
-
-
-
-
