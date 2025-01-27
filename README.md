@@ -63,18 +63,6 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 python3 -m torch.distributed.launch --nproc_per
 
 + Data preparation for D<sup>1</sup>
 
-  - Assign a tabid for each table in the repository D<sup>1</sup> by running the incremental tabid assign algorithm
-
-    ```
-    Code for id generation for D1 (incremental).
-    ```
-
-  - Generate synthetic queries for each table in D<sup>1</sup>
-
-    ```
-    Code for query generation for D1
-    ```
-
 + Train a memory unit L<sup>1</sup> to index D<sup>1</sup> based on the model M<sup>0</sup> using LoRA
 
 ```
