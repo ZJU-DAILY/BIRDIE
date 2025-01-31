@@ -21,6 +21,33 @@ We use three benchmark datasets NQ-Tables, FetaQA, and OpenWikiTable.
 
 + Data preparation
 
+  - Assign a table id for each table in the repository
+
+    First, modify the dataset path in the data_info.json, and generate the representations of all tables
+
+    ```
+    cd BIRDIE/tableid/
+    python emb.py --dataset_name "fetaqa" 
+    ```
+
+    Second, generate semantic IDs for each table through hierarchical clustering
+
+    ```
+    python hierarchical_clustering.py --dataset_name "fetaqa" --semantic_id_dir "BIRDIE/tableid/docid/"
+    ```
+
+
+  - Generate synthetic queries for each table
+
+    Download the query generators and start the [vllm](https://github.com/vllm-project/vllm) service, then run the code below
+
+    ```
+    cd BIRDIE/query_generate/
+    python query_g.py --dataset_name "fetaqa" --num 20 --tableid_path [Your path] --out_train_path [Your path]
+    ```
+
+    **tableid_path** is the path to the tableid file, **num** is the number of synthetic queries for each table, **out_train_path** is the path to  the output file.
+
 + Train the model to index the tables in the repository
 
 ```
@@ -49,6 +76,23 @@ CUDA_VISIBLE_DEVICES=0 python3 run.py \
 
 + Data preparation for D<sup>0</sup>
 
+  - Assign a tabid for each table in the repository D<sup>0</sup>
+
+    First, generate the representations of tables.
+
+    ```
+    cd BIRDIE/tableid/
+    python emb.py --dataset_name "fetaqa_inc_0" 
+    ```
+
+    Second, generate semantic IDs for each table through hierarchical clustering.
+
+    ```
+    python hierarchical_clustering.py --dataset_name "fetaqa_inc_0" --semantic_id_dir "BIRDIE/tableid/docid/"
+    ```
+
+  - Generate synthetic queries for each table in D<sup>0</sup>, similar to the steps in "Indexing from scratch"
+
 + Train the model M<sup>0  </sup> on the repository D<sup>0</sup>
 
 ```
@@ -62,6 +106,23 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 python3 -m torch.distributed.launch --nproc_per
 ```
 
 + Data preparation for D<sup>1</sup>
+
+  - Assign a tabid for each table in the repository D<sup>1</sup> by running the incremental tabid assign algorithm
+
+    First,  generate the representations of tables
+
+    ```
+    cd BIRDIE/tableid/
+    python emb.py --dataset_name "fetaqa_inc_1" 
+    ```
+
+    Second, generate semantic IDs for each table through incremental tabid assign algorithm
+
+    ```
+    python cluster_tree.py --dataset_name "fetaqa_inc_1" --base_tag "fetaqa_inc_0"
+    ```
+
+  - Generate synthetic queries for each table in D<sup>1</sup>, similar to the steps in "Indexing from scratch"
 
 + Train a memory unit L<sup>1</sup> to index D<sup>1</sup> based on the model M<sup>0</sup> using LoRA
 
@@ -93,9 +154,7 @@ CUDA_VISIBLE_DEVICES=0 python3 run_cont.py \
 
 ## LLM-based Query Generators
 
-We train the query generators for tabular data, based on the refined Llama3-8b model, as detailed in our paper. We release the trained generators. Users can also train their query generators for different table repositories.
-
-
+We train query generators for tabular data, based on the refined Llama3-8b model, as detailed in our paper. We release our trained [Query Generators](https://drive.google.com/drive/folders/1HLYbWzADI0xAqpuXuNgFcZPFxu0a2vfc?usp=drive_link). Users can also train their query generators for different table repositories.
 
 
 ## Acknowledgments
