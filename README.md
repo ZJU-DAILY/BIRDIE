@@ -13,7 +13,8 @@ Please refer to the source code to install all required packages in Python.
 
 ## Datasets
 
-We use three benchmark datasets NQ-Tables, FetaQA, and OpenWikiTable. 
+We use three benchmark datasets NQ-Tables, FetaQA, and [OpenWikiTable](https://github.com/sean0042/Open_WikiTable). 
+NQ-Tables and FetaQA can be downloaded from [here](https://github.com/TheDataStation/solo/blob/main/get_data.sh). OpenWikiTable should be pre-processed to be the same format with the other two datasets.
 
 ## Run Experimental Case
 
@@ -158,7 +159,5 @@ We train query generators for tabular data, based on the refined Llama3-8b model
 
 
 ## Acknowledgments
-
-The original datasets are from [NQ-Tables](https://github.com/google-research/tapas/blob/master/DENSE_TABLE_RETRIEVER.md),  [FetaQA](https://github.com/Yale-LILY/FeTaQA), and [OpenWikiTable](https://github.com/sean0042/Open_WikiTable).
 
 We thank the previous studies on table discovery/retrieval [Solo](https://github.com/thedatastation/solo), [DTR](https://github.com/google-research/tapas/blob/master/DENSE_TABLE_RETRIEVER.md). We use part of the code of [DSI-QG](https://github.com/ArvinZhuang/DSI-QG).
