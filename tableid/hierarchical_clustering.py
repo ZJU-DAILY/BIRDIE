@@ -10,7 +10,7 @@ import pickle
 from sklearn.preprocessing import normalize, LabelEncoder
 from sklearnex import patch_sklearn
 import math
-from tableidGenerate.hierarchical_clustering.cluster_tree import cluster_node
+from cluster_tree import cluster_node
 
 patch_sklearn()
 
